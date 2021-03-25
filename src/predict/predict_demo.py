@@ -28,7 +28,7 @@ parser.add_argument('--num_tpu_cores', type=int, default=8,
                     help='num_tpu_cores')
 parser.add_argument('--bert_config_file', type=str, default="../../config/m_bert_base_config.json",
                     help='bert_config_file')
-parser.add_argument('--init_checkpoint', type=str, default="../../data/pretrain/mbert_6500k/model.ckpt-6500000",
+parser.add_argument('--init_checkpoint', type=str, default="../../data/mbert/pretrain-mini/model.ckpt-40000",
                     help='init_checkpoint')
 parser.add_argument('--k1', type=int, default=12, help='kernel_size1')
 parser.add_argument('--k2', type=int, default=12, help='kernel_size2')

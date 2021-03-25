@@ -10,7 +10,7 @@ import _pickle as cPickle
 from copy import deepcopy
 import collections
 from multiprocessing import Process, Manager
-from src.pretrain.smiles_util import SmilesTokenizer, Timer
+from src.utils.utils import SmilesTokenizer, Timer
 
 
 __author__ = 'Bonggun Shin'
@@ -26,10 +26,10 @@ flags.DEFINE_integer("random_seed", 12345, "Random seed for data generation.")
 flags.DEFINE_string("base_path", "../../data/pretrain", "base path for dataset")
 # flags.DEFINE_string("input_file", ",".join(["%s/smiles%02d.txt" % (FLAGS.base_path, n) for n in range(79)]),
 #                     "Input raw text file (or comma-separated list of files).")
-flags.DEFINE_string("input_file", ",".join(["%s/molecule/smiles%02d.txt" % (FLAGS.base_path, n) for n in range(50)]),
+flags.DEFINE_string("input_file", ",".join(["%s/molecule/smiles%02d" % (FLAGS.base_path, n) for n in range(50)]),
                     "Input raw text file (or comma-separated list of files).")
 flags.DEFINE_string(
-    "output_dir", "gs://bdti/mbert/tfr",
+    "output_dir", "../../data/mbert/tfr",
     "Output TF example file (or comma-separated list of files).")
 
 
@@ -263,7 +263,7 @@ def tfrecord_smiles_multiprocess(input_files):
     # instances = manager.list()
 
     for wid, input_file in enumerate(input_files):
-        p = Process(target=read_smiles_worker, args=(wid, input_file, tokenizer, vocab_words, rng))
+        p = Process(target=read_smiles_worker, args=(40 + wid, input_file, tokenizer, vocab_words, rng))
         jobs.append(p)
 
     for proc in jobs:
@@ -285,7 +285,7 @@ def read_smiles_worker(wid, input_file, tokenizer, vocab_words, rng):
             line = reader.readline()
             if not line:
                 break
-            smiles = line.strip().split(',')[1]
+            smiles = line.strip().split('\t')[-1]
             len_list.append(len(smiles))
             tokens = tokenizer.tokenize(smiles)
             truncate_seq_pair(tokens, max_num_tokens, rng)
@@ -331,4 +331,9 @@ if __name__=="__main__":
         input_files.extend(tf.gfile.Glob(input_pattern))
 
     tfrecord_smiles_multiprocess(input_files)
+    """tokenizer = SmilesTokenizer("%s/vocab_smiles.txt" % (FLAGS.base_path))
+    vocab_words = list(tokenizer.vocab.keys())
+    rng = random.Random(FLAGS.random_seed)
+    for wid, input_file in enumerate(input_files):
+        p = read_smiles_worker(wid, input_file, tokenizer, vocab_words, rng)"""
 

@@ -1,6 +1,6 @@
 import os
-from src.pretrain.bert import modeling
-from src.pretrain.bert import optimization
+from src.bert import modeling
+from src.bert import optimization
 import tensorflow as tf
 
 __author__ = 'Bonggun Shin'
@@ -14,7 +14,7 @@ FLAGS = flags.FLAGS
 ## Required parameters
 flags.DEFINE_string(
     # "bert_config_file", "../../config/m_bert_base_config.json",
-    "bert_config_file", "../../config/m_bert_mini_config.json",
+    "bert_config_file", "../../config/m_bert_base_config.json",
     "The config json file corresponding to the pre-trained BERT model. "
     "This specifies the model architecture.")
 
@@ -27,16 +27,16 @@ flags.DEFINE_integer(
     "The number of input files (tfrecord).")
 
 flags.DEFINE_string(
-    "input_file", ",".join(["gs://your_gs/mbert/tfr/%s.%02d" % (FLAGS.input_type, n) for n in range(500)]),
+    "input_file", ",".join(["../../data/mbert/tfr/%s.%02d" % (FLAGS.input_type, n) for n in range(500)]),
     "Input TF example files (can be a glob or comma separated).")
 
 flags.DEFINE_string(
-    "output_dir", "gs://your_gs/mbert/pretrain-mini/",
+    "output_dir", "../../data/mbert/pretrain-mini/",
     "The output directory where the model checkpoints will be written.")
 
 ## Other parameters
 flags.DEFINE_string(
-    "init_checkpoint", None,
+    "init_checkpoint", "../../data/mbert/pretrain-mini/model.ckpt-40000",
     "Initial checkpoint (usually from a pre-trained BERT model).")
 
 flags.DEFINE_integer(
@@ -50,17 +50,17 @@ flags.DEFINE_integer(
     "Maximum number of masked LM predictions per sequence. "
     "Must match data generation.")
 
-flags.DEFINE_bool("do_train", True, "Whether to run training.")
+flags.DEFINE_bool("do_train", False, "Whether to run training.")
 
-flags.DEFINE_bool("do_eval", False, "Whether to run eval on the dev set.")
+flags.DEFINE_bool("do_eval", True, "Whether to run eval on the dev set.")
 
-flags.DEFINE_integer("train_batch_size", 512, "Total batch size for training.")
+flags.DEFINE_integer("train_batch_size", 256, "Total batch size for training.")
 
 flags.DEFINE_integer("eval_batch_size", 8, "Total batch size for eval.")
 
 flags.DEFINE_float("learning_rate", 1e-4, "The initial learning rate for Adam.")
 
-flags.DEFINE_integer("num_train_steps", 6500000, "Number of training steps.")
+flags.DEFINE_integer("num_train_steps", 40000, "Number of training steps.")
 
 flags.DEFINE_integer("num_warmup_steps", 10000, "Number of warmup steps.")
 
@@ -72,7 +72,7 @@ flags.DEFINE_integer("iterations_per_loop", 1000,
 
 flags.DEFINE_integer("max_eval_steps", 100, "Maximum number of eval steps.")
 
-flags.DEFINE_bool("use_tpu", True, "Whether to use TPU or GPU/CPU.")
+flags.DEFINE_bool("use_tpu", False, "Whether to use TPU or GPU/CPU.")
 
 tf.flags.DEFINE_string(
     "tpu_name", "your_tpu_name",
