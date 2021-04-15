@@ -16,8 +16,8 @@ tf.logging.set_verbosity(tf.logging.INFO)
 
 parser = argparse.ArgumentParser(description='Training parser')
 parser.add_argument('--gpu_num', default="0", choices=["0", "1", "2", "3", "4", "5", "6", "7"], type=str)
-parser.add_argument('--model_version', default="11", choices=["1", "2", "3", "4", "11", "14"], type=str)
-parser.add_argument('--batch_size', default=512, choices=[256, 512], type=int)
+parser.add_argument('--model_version', default="1", choices=["1", "2", "3", "4", "11", "14"], type=str)
+parser.add_argument('--batch_size', default=1, choices=[256, 512], type=int)
 parser.add_argument('--fold', default=0, choices=[0,1,2,3,4], type=int)
 parser.add_argument('--data_path', type=str, default="../../data")
 parser.add_argument('--dataset_name', type=str, default="kiba", choices=["davis", "kiba"],
@@ -34,15 +34,15 @@ parser.add_argument('--num_tpu_cores', type=int, default=8,
                     help='num_tpu_cores')
 parser.add_argument('--bert_config_file', type=str, default="../../config/m_bert_base_config.json",
                     help='bert_config_file')
-parser.add_argument('--init_checkpoint', type=str, default="/pretrain/mbert_6500k/model.ckpt-6500000",
+parser.add_argument('--init_checkpoint', type=str, default="/mbert/pretrain-mini/model.ckpt-40000",
                     help='init_checkpoint')
-parser.add_argument('--k1', type=int, default=12, help='kernel_size1')
+parser. add_argument('--k1', type=int, default=12, help='kernel_size1')
 parser.add_argument('--k2', type=int, default=12, help='kernel_size2')
 parser.add_argument('--k3', type=int, default=12, help='kernel_size3')
 
 
 args = parser.parse_args()
-os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_num
+os.environ["CUDA_VISIBLE_DEVICES"] = ""  # args.gpu_num
 
 i_trn = "%s/%s/tfrecord/fold%d.trn.tfrecord" % (args.data_path, args.dataset_name, args.fold)
 i_dev= "%s/%s/tfrecord/fold%d.dev.tfrecord" % (args.data_path, args.dataset_name, args.fold)
@@ -57,7 +57,7 @@ if args.dataset_name=="kiba":
     # num_train_steps = 154000  # (78835/512)*1000 = 153974, 1000 epoch
     num_train_steps = int(num_trn_example*1.0/batch_size*1000)  # (78835/512)*1000 = 153974, 1000 epoch
     num_warmup_steps = num_train_steps//10
-    dev_batch_size = 512
+    dev_batch_size = 1
     dev_steps = 38*100 # 512*38*10 ~2000k, 100 times
     save_checkpoints_steps = 150 # 78835/512 = 157.67
 
@@ -294,7 +294,6 @@ def main(argv):
 
     is_per_host = tf.contrib.tpu.InputPipelineConfig.PER_HOST_V2
     run_config = tf.contrib.tpu.RunConfig(
-        session_config=config,
         cluster=tpu_cluster_resolver,
         master=None,
         model_dir=output_dir,
@@ -334,7 +333,9 @@ def main(argv):
     last_time = start_timestamp
     while current_step < num_train_steps:
         next_checkpoint = min(current_step + save_checkpoints_steps, num_train_steps)
+        tf.logging.info('train 1')
         estimator.train(input_fn=input_fn_trn, max_steps=next_checkpoint)
+        tf.logging.info('train 2')
 
         checkpoint_time = int(time.time() - last_time)
         last_time = time.time()
